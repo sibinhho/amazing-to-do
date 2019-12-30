@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Amazing To-Do</title>
+    <script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+
+    <!-- jQuery for Materialize CSS-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    
+    <!-- For demo and submission only, not for production.
+      Slowly compiles JSX with Babel in the browser and uses a large development build of React. 
+    -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Use Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  </head>
+
+  <body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        class NavBar extends React.Component {
+        constructor(props) {
+            super(props);
+        }
+
+        render() {
+            return (
+            <div className="navbar-fixed">
+                <nav>
+                <div className="nav-wrapper">
+                    <a href="#" className="brand-logo center">
+                    <i className="material-icons">today</i>Amazing To-Do
+                    </a>
+                    <ul id="nav-mobile" className="left hide-on-med-and-down">
+                    <li>
+                        <a href="javascript:alert('Under construction');">About</a>
+                    </li>
+                    <li>
+                        <a href="javascript:alert('Under construction');"> Help</a>
+                    </li>
+                    </ul>
+                </div>
+                </nav>
+            </div>
+            );
+        }
+        }
+
+        class TaskRow extends React.Component {
+        constructor(props) {
+            super(props);
+        }
+
+        handleDelete = () => {
+            fetch("/v1/tasks/" + this.props.task.id, {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/json, text/plain, */*",
+                "Content-Type": "application/json"
+            }
+            }).then(this.props.onDeleteTask);
+        };
+
+        handleEdit = () => {
+            this.props.onEditTask(this.props.task);
+        };
+
+        handleMarkAsDone = () => {
+            fetch("/v1/tasks/" + this.props.task.id, {
+            method: "PATCH",
+            headers: {
+                "Accept": "application/json, text/plain, */*",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                task: {
+                done: !this.props.task.done
+                }
+            })
+            }).then(this.props.onMarkAsDone);
+        };
+
+        handleTagClick = (tag) => {
+            this.props.onTagClick(tag);
+        };
+
+        render() {
+            const task = this.props.task;
+            const name = !task.done ? (
+            task.name
+            ) : (
+            <span style={{ textDecorationLine: "line-through" }}>{task.name}</span>
+            );
+
+            const categories = task.category.split(" ").map((tag) => (
+            <div className="chip">
+                <a onClick={() => this.handleTagClick(tag)}>{tag}</a>
+            </div>
+            ));
+
+            const deadline = !task.done ? (
+            task.deadline
+            ) : (
+            <span style={{ textDecorationLine: "line-through" }}>
+                {task.deadline}
+            </span>
+            );
+
+            return (
+            <tr>
+                <td>
+                {name} {categories}
+                </td>
+                <td>{deadline}</td>
+                <td style={{ textAlign: "right" }}>
+                <a
+                    className="waves-effect waves-teal btn-flat"
+                    onClick={this.handleMarkAsDone}
+                >
+                    Mark as done
+                </a>
+
+                <a
+                    className="waves-effect waves-light btn-flat"
+                    onClick={this.handleEdit}
+                >
+                    Edit
+                </a>
+                <a
+                    className="waves-effect waves-light btn-flat"
+                    onClick={this.handleDelete}
+                >
+                    Delete
+                </a>
+                </td>
+            </tr>
+            );
+        }
+        }
+
+        class TaskTable extends React.Component {
+        render() {
+            const filterText = this.props.filterText;
+            const catFilterText = this.props.catFilterText;
+            const notDoneOnly = this.props.notDoneOnly;
+
+            const rows = [];
+
+            this.props.tasks.forEach((task) => {
+            if (task.name.indexOf(filterText) === -1) {
+                return;
+            }
+            if (task.category.indexOf(catFilterText) === -1) {
+                return;
+            }
+            if (notDoneOnly && task.done) {
+                return;
+            }
+
+            rows.push(
+                <TaskRow
+                task={task}
+                key={task.name}
+                onDeleteTask={this.props.onDeleteTask}
+                onEditTask={this.props.onEditTask}
+                onMarkAsDone={this.props.onMarkAsDone}
+                onTagClick={this.props.onTagClick}
+                />
+            );
+            });
+
+            return (
+            <table>
+                <thead>
+                <tr>
+                    <th>Task</th>
+                    <th>Due date</th>
+                    <th style={{ textAlign: "right" }}>Action</th>
+                </tr>
+                </thead>
+                <tbody>{rows}</tbody>
+            </table>
+            );
+        }
+        }
+
+        class SearchForm extends React.Component {
+        constructor(props) {
+            super(props);
+        }
+
+        handleFilterTextChange = (e) => {
+            this.props.onFilterTextChange(e.target.value);
+        };
+
+        handleCatFilterTextChange = (e) => {
+            this.props.onCatFilterTextChange(e.target.value);
+        };
+
+        handleNotDoneChange = (e) => {
+            this.props.onNotDoneChange(e.target.checked);
+        };
+
+        render() {
+            return (
+            <form>
+                <input
+                type="text"
+                placeholder="Search by name"
+                value={this.props.filterText}
+                onChange={this.handleFilterTextChange}
+                />
+
+                <input
+                type="text"
+                placeholder="Search by tag"
+                value={this.props.catFilterText}
+                onChange={this.handleCatFilterTextChange}
+                />
+
+                <p>
+                <label>
+                    <input
+                    type="checkbox"
+                    checked={this.props.notDoneOnly}
+                    onChange={this.handleNotDoneChange}
+                    />
+                    <span>Active only</span>
+                </label>
+                </p>
+            </form>
+            );
+        }
+        }
+
+        class InputForm extends React.Component {
+        constructor(props) {
+            super(props);
+            this.state = { newTaskName: "", newTaskDeadline: "" };
+        }
+
+        componentDidMount() {
+            $(".chips").chips({
+            placeholder: "Enter a tag",
+            secondaryPlaceholder: "+ Tag"
+            });
+        }
+
+        handleChange = (e) => {
+            const target = e.target;
+            const value = target.value;
+            const name = target.name;
+
+            this.setState({
+            [name]: value
+            });
+        };
+
+        handleSubmit = (e) => {
+
+            if (!this.state.newTaskName) {
+            M.toast({ html: "Empty task name." });
+            e.preventDefault();
+            return;
+            }
+
+            const tags = M.Chips.getInstance($(".chips")).chipsData.map((x) => x.tag);
+            
+            if (!tags || !tags.length) {
+            M.toast({
+                html: "Must include at least one tag. Press ENTER to add tag."
+            });
+            e.preventDefault();
+            return;
+            }
+
+            const regexp = /^(((0[1-9]|[12]\d|3[01])\/(0[13578]|1[02])\/((19|[2-9]\d)\d{2}))|((0[1-9]|[12]\d|30)\/(0[13456789]|1[012])\/((19|[2-9]\d)\d{2}))|((0[1-9]|1\d|2[0-8])\/02\/((19|[2-9]\d)\d{2}))|(29\/02\/((1[6-9]|[2-9]\d)(0[48]|[2468][048]|[13579][26])|((16|[2468][048]|[3579][26])00))))$/g;
+            
+            if (!regexp.exec(this.state.newTaskDeadline)) {
+            M.toast({ html: "Invalid due date." });
+            e.preventDefault();
+            return;
+            }
+
+            fetch("/v1/tasks", {
+            method: "POST",
+            headers: {
+                "Accept": "application/json, text/plain, */*",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                task: {
+                category: tags.join(" "),
+                name: this.state.newTaskName,
+                deadline: this.state.newTaskDeadline,
+                done: false
+                }
+            })
+            }).then(this.props.onSubmitTask);
+
+            this.setState({
+            newTaskCategory: "",
+            newTaskName: "",
+            newTaskDeadline: ""
+            });
+
+            e.preventDefault();
+        };
+
+        render() {
+            return (
+            <form onSubmit={this.handleSubmit}>
+                <label>
+                Task Name
+                <input
+                    type="text"
+                    name="newTaskName"
+                    placeholder="Do something"
+                    value={this.state.newTaskName}
+                    onChange={this.handleChange}
+                />
+                </label>
+                <label>
+                Tags
+                <div className="chips" />
+                </label>
+
+                <label>
+                Due date
+                <input
+                    type="text"
+                    name="newTaskDeadline"
+                    placeholder="01/01/1970"
+                    value={this.state.newTaskDeadline}
+                    onChange={this.handleChange}
+                />
+                </label>
+                <label>
+                <button className="btn waves-effect waves-light" type="submit">
+                    Add
+                    <i className="material-icons right">send</i>
+                </button>
+                </label>
+            </form>
+            );
+        }
+        }
+
+        class EditForm extends React.Component {
+        constructor(props) {
+            super(props);
+            this.state = { newTaskName: "", newTaskDeadline: "" };
+        }
+
+        componentDidMount() {
+            const tags = this.props.task.category.split(" ").map((x) => ({ tag: x }));
+
+            $(".chips").chips({
+            data: tags,
+            placeholder: "Enter a tag",
+            secondaryPlaceholder: "+ Tag"
+            });
+            this.setState({
+            newTaskName: this.props.task.name,
+            newTaskDeadline: this.props.task.deadline
+            });
+        }
+
+        handleChange = (e) => {
+            const target = e.target;
+            const value = target.value;
+            const name = target.name;
+            this.setState({
+            [name]: value
+            });
+        };
+
+        handleSubmit = (e) => {
+            const tags = M.Chips.getInstance($(".chips")).chipsData.map((x) => x.tag);
+
+            const regexp = /^(((0[1-9]|[12]\d|3[01])\/(0[13578]|1[02])\/((19|[2-9]\d)\d{2}))|((0[1-9]|[12]\d|30)\/(0[13456789]|1[012])\/((19|[2-9]\d)\d{2}))|((0[1-9]|1\d|2[0-8])\/02\/((19|[2-9]\d)\d{2}))|(29\/02\/((1[6-9]|[2-9]\d)(0[48]|[2468][048]|[13579][26])|((16|[2468][048]|[3579][26])00))))$/g;
+
+            if (!this.state.newTaskName) {
+            M.toast({ html: "Empty task name." });
+            e.preventDefault();
+            return;
+            }
+
+            if (!regexp.exec(this.state.newTaskDeadline)) {
+            M.toast({ html: "Invalid due date." });
+            e.preventDefault();
+            return;
+            }
+
+            fetch("/v1/tasks/" + this.props.task.id, {
+            method: "PATCH",
+            headers: {
+                "Accept": "application/json, text/plain, */*",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                task: {
+                category: tags.join(" "),
+                name: this.state.newTaskName,
+                deadline: this.state.newTaskDeadline
+                }
+            })
+            }).then(this.props.onSubmitTask);
+
+            e.preventDefault();
+        };
+
+        render() {
+            return (
+            <form onSubmit={this.handleSubmit}>
+                <label>
+                Task Name
+                <input
+                    type="text"
+                    name="newTaskName"
+                    placeholder="Do something"
+                    value={this.state.newTaskName}
+                    onChange={this.handleChange}
+                />
+                </label>
+                <label>
+                Tags
+                <div className="chips" />
+                </label>
+                <label>
+                Due date
+                <input
+                    type="text"
+                    name="newTaskDeadline"
+                    placeholder="01/01/1970"
+                    value={this.state.newTaskDeadline}
+                    onChange={this.handleChange}
+                />
+                </label>
+                <label>
+                <button className="btn waves-effect waves-light" type="submit">
+                    Update
+                    <i className="material-icons right">send</i>
+                </button>
+                </label>
+            </form>
+            );
+        }
+        }
+
+        class App extends React.Component {
+        constructor(props) {
+            super(props);
+            this.state = {
+            filterText: "",
+            catFilterText: "",
+            notDoneOnly: false,
+            isEditing: false,
+            editingTask: null,
+            tasks: []
+            };
+        }
+
+        componentDidMount() {
+            this.updateTasks();
+        }
+
+        handleFilterTextChange = (filterText) => {
+            this.setState({
+            filterText: filterText
+            });
+        };
+
+        handleCatFilterTextChange = (catFilterText) => {
+            this.setState({
+            catFilterText: catFilterText
+            });
+        };
+
+        handleNotDoneChange = (notDoneOnly) => {
+            this.setState({
+            notDoneOnly: notDoneOnly
+            });
+        };
+
+        handleEditTask = (task) => {
+            this.setState({
+            isEditing: true,
+            editingTask: task
+            });
+        };
+
+        handleTagClick = (tag) => {
+            this.setState({
+            catFilterText: tag
+            });
+        };
+
+        updateTasks = () => {
+            fetch(`/v1/tasks`)
+            .then((res) => res.json())
+            .then((data) => {
+                this.setState({
+                tasks: data.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
+                isEditing: false
+                });
+            });
+        };
+
+        render() {
+            return (
+            <div>
+                <NavBar />
+
+                <div className="container">
+                <SearchForm
+                    filterText={this.state.filterText}
+                    catFilterText={this.state.catFilterText}
+                    notDoneOnly={this.state.notDoneOnly}
+                    onFilterTextChange={this.handleFilterTextChange}
+                    onCatFilterTextChange={this.handleCatFilterTextChange}
+                    onNotDoneChange={this.handleNotDoneChange}
+                />
+
+                <TaskTable
+                    tasks={this.state.tasks}
+                    filterText={this.state.filterText}
+                    catFilterText={this.state.catFilterText}
+                    notDoneOnly={this.state.notDoneOnly}
+                    onDeleteTask={this.updateTasks}
+                    onEditTask={this.handleEditTask}
+                    onMarkAsDone={this.updateTasks}
+                    onTagClick={this.handleTagClick}
+                />
+
+                {this.state.isEditing ? (
+                    <EditForm
+                    onSubmitTask={this.updateTasks}
+                    task={this.state.editingTask}
+                    />
+                ) : (
+                    <InputForm onSubmitTask={this.updateTasks} />
+                )}
+                </div>
+            </div>
+            );
+        }
+        }
+
+        ReactDOM.render(<App />, document.getElementById("root"));
+
+    </script>
+
+  </body>
+</html>
