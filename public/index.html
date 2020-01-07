@@ -8,563 +8,580 @@
 
     <!-- jQuery for Materialize CSS-->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    
+
     <!-- For demo and submission only, not for production.
       Slowly compiles JSX with Babel in the browser. 
     -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <!-- Use Materialize CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
   </head>
 
   <body>
-
     <div id="root"></div>
 
     <script type="text/babel">
-        class NavBar extends React.Component {
+      class NavBar extends React.Component {
         constructor(props) {
-            super(props);
+          super(props);
         }
 
         render() {
-            return (
+          return (
             <div className="navbar-fixed">
-                <nav>
+              <nav>
                 <div className="nav-wrapper">
-                    <a href="#" className="brand-logo center">
+                  <a href="#" className="brand-logo center">
                     <i className="material-icons">today</i>Amazing To-Do
-                    </a>
-                    <ul id="nav-mobile" className="left hide-on-med-and-down">
+                  </a>
+                  <ul id="nav-mobile" className="left hide-on-med-and-down">
                     <li>
-                        <a href="javascript:alert('Under construction');">About</a>
+                      <a href="javascript:alert('Under construction');">
+                        About
+                      </a>
                     </li>
                     <li>
-                        <a href="javascript:alert('Under construction');"> Help</a>
+                      <a href="javascript:alert('Under construction');">
+                        {" "}
+                        Help
+                      </a>
                     </li>
-                    </ul>
+                  </ul>
                 </div>
-                </nav>
+              </nav>
             </div>
-            );
+          );
         }
-        }
+      }
 
-        class TaskRow extends React.Component {
+      class TaskRow extends React.Component {
         constructor(props) {
-            super(props);
+          super(props);
         }
 
         handleDelete = () => {
-            fetch("/v1/tasks/" + this.props.task.id, {
+          fetch("/v1/tasks/" + this.props.task.id, {
             method: "DELETE",
             headers: {
-                "Accept": "application/json, text/plain, */*",
-                "Content-Type": "application/json"
+              Accept: "application/json, text/plain, */*",
+              "Content-Type": "application/json"
             }
-            }).then(this.props.onDeleteTask);
+          }).then(this.props.onDeleteTask);
         };
 
         handleEdit = () => {
-            this.props.onEditTask(this.props.task);
+          this.props.onEditTask(this.props.task);
         };
 
         handleMarkAsDone = () => {
-            fetch("/v1/tasks/" + this.props.task.id, {
+          fetch("/v1/tasks/" + this.props.task.id, {
             method: "PATCH",
             headers: {
-                "Accept": "application/json, text/plain, */*",
-                "Content-Type": "application/json"
+              Accept: "application/json, text/plain, */*",
+              "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                task: {
+              task: {
                 done: !this.props.task.done
-                }
+              }
             })
-            }).then(this.props.onMarkAsDone);
+          }).then(this.props.onMarkAsDone);
         };
 
-        handleTagClick = (tag) => {
-            this.props.onTagClick(tag);
+        handleTagClick = tag => {
+          this.props.onTagClick(tag);
         };
 
         render() {
-            const task = this.props.task;
-            const name = !task.done ? (
+          const task = this.props.task;
+          const name = !task.done ? (
             task.name
-            ) : (
-            <span style={{ textDecorationLine: "line-through" }}>{task.name}</span>
-            );
-
-            const categories = task.category.split(" ").map((tag) => (
-            <div className="chip">
-                <a onClick={() => this.handleTagClick(tag)}>{tag}</a>
-            </div>
-            ));
-
-            const deadline = !task.done ? (
-            task.deadline
-            ) : (
+          ) : (
             <span style={{ textDecorationLine: "line-through" }}>
-                {task.deadline}
+              {task.name}
             </span>
-            );
+          );
 
-            return (
+          const categories = task.category.split(" ").map(tag => (
+            <div className="chip">
+              <a onClick={() => this.handleTagClick(tag)}>{tag}</a>
+            </div>
+          ));
+
+          const deadline = !task.done ? (
+            task.deadline
+          ) : (
+            <span style={{ textDecorationLine: "line-through" }}>
+              {task.deadline}
+            </span>
+          );
+
+          return (
             <tr>
-                <td>
+              <td>
                 {name} {categories}
-                </td>
-                <td>{deadline}</td>
-                <td style={{ textAlign: "right" }}>
+              </td>
+              <td>{deadline}</td>
+              <td style={{ textAlign: "right" }}>
                 <a
-                    className="waves-effect waves-teal btn-flat"
-                    onClick={this.handleMarkAsDone}
+                  className="waves-effect waves-teal btn-flat"
+                  onClick={this.handleMarkAsDone}
                 >
-                    Mark as done
+                  Mark as done
                 </a>
 
                 <a
-                    className="waves-effect waves-light btn-flat"
-                    onClick={this.handleEdit}
+                  className="waves-effect waves-light btn-flat"
+                  onClick={this.handleEdit}
                 >
-                    Edit
+                  Edit
                 </a>
                 <a
-                    className="waves-effect waves-light btn-flat"
-                    onClick={this.handleDelete}
+                  className="waves-effect waves-light btn-flat"
+                  onClick={this.handleDelete}
                 >
-                    Delete
+                  Delete
                 </a>
-                </td>
+              </td>
             </tr>
-            );
+          );
         }
-        }
+      }
 
-        class TaskTable extends React.Component {
+      class TaskTable extends React.Component {
         render() {
-            const filterText = this.props.filterText;
-            const catFilterText = this.props.catFilterText;
-            const notDoneOnly = this.props.notDoneOnly;
+          const filterText = this.props.filterText;
+          const catFilterText = this.props.catFilterText;
+          const notDoneOnly = this.props.notDoneOnly;
 
-            const rows = [];
+          const rows = [];
 
-            this.props.tasks.forEach((task) => {
+          this.props.tasks.forEach(task => {
             if (task.name.indexOf(filterText) === -1) {
-                return;
+              return;
             }
             if (task.category.indexOf(catFilterText) === -1) {
-                return;
+              return;
             }
             if (notDoneOnly && task.done) {
-                return;
+              return;
             }
 
             rows.push(
-                <TaskRow
+              <TaskRow
                 task={task}
                 key={task.name}
                 onDeleteTask={this.props.onDeleteTask}
                 onEditTask={this.props.onEditTask}
                 onMarkAsDone={this.props.onMarkAsDone}
                 onTagClick={this.props.onTagClick}
-                />
+              />
             );
-            });
+          });
 
-            return (
+          return (
             <table>
-                <thead>
+              <thead>
                 <tr>
-                    <th>Task</th>
-                    <th>Due date</th>
-                    <th style={{ textAlign: "right" }}>Action</th>
+                  <th>Task</th>
+                  <th>Due date</th>
+                  <th style={{ textAlign: "right" }}>Action</th>
                 </tr>
-                </thead>
-                <tbody>{rows}</tbody>
+              </thead>
+              <tbody>{rows}</tbody>
             </table>
-            );
+          );
         }
-        }
+      }
 
-        class SearchForm extends React.Component {
+      class SearchForm extends React.Component {
         constructor(props) {
-            super(props);
+          super(props);
         }
 
-        handleFilterTextChange = (e) => {
-            this.props.onFilterTextChange(e.target.value);
+        handleFilterTextChange = e => {
+          this.props.onFilterTextChange(e.target.value);
         };
 
-        handleCatFilterTextChange = (e) => {
-            this.props.onCatFilterTextChange(e.target.value);
+        handleCatFilterTextChange = e => {
+          this.props.onCatFilterTextChange(e.target.value);
         };
 
-        handleNotDoneChange = (e) => {
-            this.props.onNotDoneChange(e.target.checked);
+        handleNotDoneChange = e => {
+          this.props.onNotDoneChange(e.target.checked);
         };
 
         render() {
-            return (
+          return (
             <form>
-                <input
+              <input
                 type="text"
                 placeholder="Search by name"
                 value={this.props.filterText}
                 onChange={this.handleFilterTextChange}
-                />
+              />
 
-                <input
+              <input
                 type="text"
                 placeholder="Search by tag"
                 value={this.props.catFilterText}
                 onChange={this.handleCatFilterTextChange}
-                />
+              />
 
-                <p>
+              <p>
                 <label>
-                    <input
+                  <input
                     type="checkbox"
                     checked={this.props.notDoneOnly}
                     onChange={this.handleNotDoneChange}
-                    />
-                    <span>Active only</span>
+                  />
+                  <span>Active only</span>
                 </label>
-                </p>
+              </p>
             </form>
-            );
+          );
         }
-        }
+      }
 
-        class InputForm extends React.Component {
+      class InputForm extends React.Component {
         constructor(props) {
-            super(props);
-            this.state = { newTaskName: "", newTaskDeadline: "" };
+          super(props);
+          this.state = { newTaskName: "", newTaskDeadline: "" };
         }
 
         componentDidMount() {
-            $(".chips").chips({
+          $(".chips").chips({
             placeholder: "Enter a tag",
             secondaryPlaceholder: "+ Tag"
-            });
+          });
         }
 
-        handleChange = (e) => {
-            const target = e.target;
-            const value = target.value;
-            const name = target.name;
+        handleChange = e => {
+          const target = e.target;
+          const value = target.value;
+          const name = target.name;
 
-            this.setState({
+          this.setState({
             [name]: value
-            });
+          });
         };
 
-        handleSubmit = (e) => {
-
-            if (!this.state.newTaskName) {
+        handleSubmit = e => {
+          if (!this.state.newTaskName) {
             M.toast({ html: "Empty task name." });
             e.preventDefault();
             return;
-            }
+          }
 
-            const tags = M.Chips.getInstance($(".chips")).chipsData.map((x) => x.tag);
-            
-            if (!tags || !tags.length) {
+          const tags = M.Chips.getInstance($(".chips")).chipsData.map(
+            x => x.tag
+          );
+
+          if (!tags || !tags.length) {
             M.toast({
-                html: "Must include at least one tag. Press ENTER to add tag."
+              html: "Must include at least one tag. Press ENTER to add tag."
             });
             e.preventDefault();
             return;
-            }
+          }
 
-            const regexp = /^(((0[1-9]|[12]\d|3[01])\/(0[13578]|1[02])\/((19|[2-9]\d)\d{2}))|((0[1-9]|[12]\d|30)\/(0[13456789]|1[012])\/((19|[2-9]\d)\d{2}))|((0[1-9]|1\d|2[0-8])\/02\/((19|[2-9]\d)\d{2}))|(29\/02\/((1[6-9]|[2-9]\d)(0[48]|[2468][048]|[13579][26])|((16|[2468][048]|[3579][26])00))))$/g;
-            
-            if (!regexp.exec(this.state.newTaskDeadline)) {
+          const regexp = /^(((0[1-9]|[12]\d|3[01])\/(0[13578]|1[02])\/((19|[2-9]\d)\d{2}))|((0[1-9]|[12]\d|30)\/(0[13456789]|1[012])\/((19|[2-9]\d)\d{2}))|((0[1-9]|1\d|2[0-8])\/02\/((19|[2-9]\d)\d{2}))|(29\/02\/((1[6-9]|[2-9]\d)(0[48]|[2468][048]|[13579][26])|((16|[2468][048]|[3579][26])00))))$/g;
+
+          if (!regexp.exec(this.state.newTaskDeadline)) {
             M.toast({ html: "Invalid due date." });
             e.preventDefault();
             return;
-            }
+          }
 
-            fetch("/v1/tasks", {
+          fetch("/v1/tasks", {
             method: "POST",
             headers: {
-                "Accept": "application/json, text/plain, */*",
-                "Content-Type": "application/json"
+              Accept: "application/json, text/plain, */*",
+              "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                task: {
+              task: {
                 category: tags.join(" "),
                 name: this.state.newTaskName,
                 deadline: this.state.newTaskDeadline,
                 done: false
-                }
+              }
             })
-            }).then(this.props.onSubmitTask);
+          }).then(this.props.onSubmitTask);
 
-            this.setState({
+          this.setState({
             newTaskCategory: "",
             newTaskName: "",
             newTaskDeadline: ""
-            });
+          });
 
-            e.preventDefault();
+          e.preventDefault();
         };
 
         render() {
-            return (
+          return (
             <form onSubmit={this.handleSubmit}>
-                <label>
+              <label>
                 Task Name
                 <input
-                    type="text"
-                    name="newTaskName"
-                    placeholder="Do something"
-                    value={this.state.newTaskName}
-                    onChange={this.handleChange}
+                  type="text"
+                  name="newTaskName"
+                  placeholder="Do something"
+                  value={this.state.newTaskName}
+                  onChange={this.handleChange}
                 />
-                </label>
-                <label>
+              </label>
+              <label>
                 Tags
                 <div className="chips" />
-                </label>
+              </label>
 
-                <label>
+              <label>
                 Due date
                 <input
-                    type="text"
-                    name="newTaskDeadline"
-                    placeholder="01/01/1970"
-                    value={this.state.newTaskDeadline}
-                    onChange={this.handleChange}
+                  type="text"
+                  name="newTaskDeadline"
+                  placeholder="01/01/1970"
+                  value={this.state.newTaskDeadline}
+                  onChange={this.handleChange}
                 />
-                </label>
-                <label>
+              </label>
+              <label>
                 <button className="btn waves-effect waves-light" type="submit">
-                    Add
-                    <i className="material-icons right">send</i>
+                  Add
+                  <i className="material-icons right">send</i>
                 </button>
-                </label>
+              </label>
             </form>
-            );
+          );
         }
-        }
+      }
 
-        class EditForm extends React.Component {
+      class EditForm extends React.Component {
         constructor(props) {
-            super(props);
-            this.state = { newTaskName: "", newTaskDeadline: "" };
+          super(props);
+          this.state = { newTaskName: "", newTaskDeadline: "" };
         }
 
         componentDidMount() {
-            const tags = this.props.task.category.split(" ").map((x) => ({ tag: x }));
+          const tags = this.props.task.category
+            .split(" ")
+            .map(x => ({ tag: x }));
 
-            $(".chips").chips({
+          $(".chips").chips({
             data: tags,
             placeholder: "Enter a tag",
             secondaryPlaceholder: "+ Tag"
-            });
-            this.setState({
+          });
+          this.setState({
             newTaskName: this.props.task.name,
             newTaskDeadline: this.props.task.deadline
-            });
+          });
         }
 
-        handleChange = (e) => {
-            const target = e.target;
-            const value = target.value;
-            const name = target.name;
-            this.setState({
+        handleChange = e => {
+          const target = e.target;
+          const value = target.value;
+          const name = target.name;
+          this.setState({
             [name]: value
-            });
+          });
         };
 
-        handleSubmit = (e) => {
-            if (!this.state.newTaskName) {
+        handleSubmit = e => {
+          if (!this.state.newTaskName) {
             M.toast({ html: "Empty task name." });
             e.preventDefault();
             return;
-            }
+          }
 
-            const tags = M.Chips.getInstance($(".chips")).chipsData.map((x) => x.tag);
-            
-            if (!tags || !tags.length) {
+          const tags = M.Chips.getInstance($(".chips")).chipsData.map(
+            x => x.tag
+          );
+
+          if (!tags || !tags.length) {
             M.toast({
-                html: "Must include at least one tag. Press ENTER to add tag."
+              html: "Must include at least one tag. Press ENTER to add tag."
             });
             e.preventDefault();
             return;
-            }
+          }
 
-            const regexp = /^(((0[1-9]|[12]\d|3[01])\/(0[13578]|1[02])\/((19|[2-9]\d)\d{2}))|((0[1-9]|[12]\d|30)\/(0[13456789]|1[012])\/((19|[2-9]\d)\d{2}))|((0[1-9]|1\d|2[0-8])\/02\/((19|[2-9]\d)\d{2}))|(29\/02\/((1[6-9]|[2-9]\d)(0[48]|[2468][048]|[13579][26])|((16|[2468][048]|[3579][26])00))))$/g;
-            
-            if (!regexp.exec(this.state.newTaskDeadline)) {
+          const regexp = /^(((0[1-9]|[12]\d|3[01])\/(0[13578]|1[02])\/((19|[2-9]\d)\d{2}))|((0[1-9]|[12]\d|30)\/(0[13456789]|1[012])\/((19|[2-9]\d)\d{2}))|((0[1-9]|1\d|2[0-8])\/02\/((19|[2-9]\d)\d{2}))|(29\/02\/((1[6-9]|[2-9]\d)(0[48]|[2468][048]|[13579][26])|((16|[2468][048]|[3579][26])00))))$/g;
+
+          if (!regexp.exec(this.state.newTaskDeadline)) {
             M.toast({ html: "Invalid due date." });
             e.preventDefault();
             return;
-            }
+          }
 
-            fetch("/v1/tasks/" + this.props.task.id, {
+          fetch("/v1/tasks/" + this.props.task.id, {
             method: "PATCH",
             headers: {
-                "Accept": "application/json, text/plain, */*",
-                "Content-Type": "application/json"
+              Accept: "application/json, text/plain, */*",
+              "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                task: {
+              task: {
                 category: tags.join(" "),
                 name: this.state.newTaskName,
                 deadline: this.state.newTaskDeadline
-                }
+              }
             })
-            }).then(this.props.onSubmitTask);
+          }).then(this.props.onSubmitTask);
 
-            e.preventDefault();
+          e.preventDefault();
         };
 
         render() {
-            return (
+          return (
             <form onSubmit={this.handleSubmit}>
-                <label>
+              <label>
                 Task Name
                 <input
-                    type="text"
-                    name="newTaskName"
-                    placeholder="Do something"
-                    value={this.state.newTaskName}
-                    onChange={this.handleChange}
+                  type="text"
+                  name="newTaskName"
+                  placeholder="Do something"
+                  value={this.state.newTaskName}
+                  onChange={this.handleChange}
                 />
-                </label>
-                <label>
+              </label>
+              <label>
                 Tags
                 <div className="chips" />
-                </label>
-                <label>
+              </label>
+              <label>
                 Due date
                 <input
-                    type="text"
-                    name="newTaskDeadline"
-                    placeholder="01/01/1970"
-                    value={this.state.newTaskDeadline}
-                    onChange={this.handleChange}
+                  type="text"
+                  name="newTaskDeadline"
+                  placeholder="01/01/1970"
+                  value={this.state.newTaskDeadline}
+                  onChange={this.handleChange}
                 />
-                </label>
-                <label>
+              </label>
+              <label>
                 <button className="btn waves-effect waves-light" type="submit">
-                    Update
-                    <i className="material-icons right">send</i>
+                  Update
+                  <i className="material-icons right">send</i>
                 </button>
-                </label>
+              </label>
             </form>
-            );
+          );
         }
-        }
+      }
 
-        class App extends React.Component {
+      class App extends React.Component {
         constructor(props) {
-            super(props);
-            this.state = {
+          super(props);
+          this.state = {
             filterText: "",
             catFilterText: "",
             notDoneOnly: false,
             isEditing: false,
             editingTask: null,
             tasks: []
-            };
+          };
         }
 
         componentDidMount() {
-            this.updateTasks();
+          this.updateTasks();
         }
 
-        handleFilterTextChange = (filterText) => {
-            this.setState({
+        handleFilterTextChange = filterText => {
+          this.setState({
             filterText: filterText
-            });
+          });
         };
 
-        handleCatFilterTextChange = (catFilterText) => {
-            this.setState({
+        handleCatFilterTextChange = catFilterText => {
+          this.setState({
             catFilterText: catFilterText
-            });
+          });
         };
 
-        handleNotDoneChange = (notDoneOnly) => {
-            this.setState({
+        handleNotDoneChange = notDoneOnly => {
+          this.setState({
             notDoneOnly: notDoneOnly
-            });
+          });
         };
 
-        handleEditTask = (task) => {
-            this.setState({
+        handleEditTask = task => {
+          this.setState({
             isEditing: true,
             editingTask: task
-            });
+          });
         };
 
-        handleTagClick = (tag) => {
-            this.setState({
+        handleTagClick = tag => {
+          this.setState({
             catFilterText: tag
-            });
+          });
         };
 
         updateTasks = () => {
-            fetch(`/v1/tasks`)
-            .then((res) => res.json())
-            .then((data) => {
-                this.setState({
-                tasks: data.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
+          fetch(`/v1/tasks`)
+            .then(res => res.json())
+            .then(data => {
+              this.setState({
+                tasks: data.sort((a, b) =>
+                  a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+                ),
                 isEditing: false
-                });
+              });
             });
         };
 
         render() {
-            return (
+          return (
             <div>
-                <NavBar />
+              <NavBar />
 
-                <div className="container">
+              <div className="container">
                 <SearchForm
-                    filterText={this.state.filterText}
-                    catFilterText={this.state.catFilterText}
-                    notDoneOnly={this.state.notDoneOnly}
-                    onFilterTextChange={this.handleFilterTextChange}
-                    onCatFilterTextChange={this.handleCatFilterTextChange}
-                    onNotDoneChange={this.handleNotDoneChange}
+                  filterText={this.state.filterText}
+                  catFilterText={this.state.catFilterText}
+                  notDoneOnly={this.state.notDoneOnly}
+                  onFilterTextChange={this.handleFilterTextChange}
+                  onCatFilterTextChange={this.handleCatFilterTextChange}
+                  onNotDoneChange={this.handleNotDoneChange}
                 />
 
                 <TaskTable
-                    tasks={this.state.tasks}
-                    filterText={this.state.filterText}
-                    catFilterText={this.state.catFilterText}
-                    notDoneOnly={this.state.notDoneOnly}
-                    onDeleteTask={this.updateTasks}
-                    onEditTask={this.handleEditTask}
-                    onMarkAsDone={this.updateTasks}
-                    onTagClick={this.handleTagClick}
+                  tasks={this.state.tasks}
+                  filterText={this.state.filterText}
+                  catFilterText={this.state.catFilterText}
+                  notDoneOnly={this.state.notDoneOnly}
+                  onDeleteTask={this.updateTasks}
+                  onEditTask={this.handleEditTask}
+                  onMarkAsDone={this.updateTasks}
+                  onTagClick={this.handleTagClick}
                 />
 
                 {this.state.isEditing ? (
-                    <EditForm
+                  <EditForm
                     onSubmitTask={this.updateTasks}
                     task={this.state.editingTask}
-                    />
+                  />
                 ) : (
-                    <InputForm onSubmitTask={this.updateTasks} />
+                  <InputForm onSubmitTask={this.updateTasks} />
                 )}
-                </div>
+              </div>
             </div>
-            );
+          );
         }
-        }
+      }
 
-        ReactDOM.render(<App />, document.getElementById("root"));
-
+      ReactDOM.render(<App />, document.getElementById("root"));
     </script>
-
   </body>
 </html>
