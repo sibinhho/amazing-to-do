@@ -31,10 +31,6 @@
 
     <script type="text/babel">
       class NavBar extends React.Component {
-        constructor(props) {
-          super(props);
-        }
-
         render() {
           return (
             <div className="navbar-fixed">
@@ -50,10 +46,12 @@
                       </a>
                     </li>
                     <li>
-                      <a href="javascript:alert('Under construction');">
-                        {" "}
-                        Help
-                      </a>
+                      <a href="javascript:alert('Under construction');">Help</a>
+                    </li>
+                    <li>
+                      {this.props.isLoggedIn && (
+                        <a onClick={this.props.onLogoutClick}>Sign out</a>
+                      )}
                     </li>
                   </ul>
                 </div>
@@ -64,16 +62,13 @@
       }
 
       class TaskRow extends React.Component {
-        constructor(props) {
-          super(props);
-        }
-
         handleDelete = () => {
           fetch("/v1/tasks/" + this.props.task.id, {
             method: "DELETE",
             headers: {
               Accept: "application/json, text/plain, */*",
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
+              Authorization: this.props.auth.token
             }
           }).then(this.props.onDeleteTask);
         };
@@ -87,7 +82,8 @@
             method: "PATCH",
             headers: {
               Accept: "application/json, text/plain, */*",
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
+              Authorization: this.props.auth.token
             },
             body: JSON.stringify({
               task: {
@@ -184,6 +180,7 @@
                 onEditTask={this.props.onEditTask}
                 onMarkAsDone={this.props.onMarkAsDone}
                 onTagClick={this.props.onTagClick}
+                auth={this.props.auth}
               />
             );
           });
@@ -204,10 +201,6 @@
       }
 
       class SearchForm extends React.Component {
-        constructor(props) {
-          super(props);
-        }
-
         handleFilterTextChange = e => {
           this.props.onFilterTextChange(e.target.value);
         };
@@ -306,14 +299,16 @@
             method: "POST",
             headers: {
               Accept: "application/json, text/plain, */*",
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
+              Authorization: this.props.auth.token
             },
             body: JSON.stringify({
               task: {
                 category: tags.join(" "),
                 name: this.state.newTaskName,
                 deadline: this.state.newTaskDeadline,
-                done: false
+                done: false,
+                user_id: this.props.auth.id
               }
             })
           }).then(this.props.onSubmitTask);
@@ -428,7 +423,8 @@
             method: "PATCH",
             headers: {
               Accept: "application/json, text/plain, */*",
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
+              Authorization: this.props.auth.token
             },
             body: JSON.stringify({
               task: {
@@ -529,7 +525,13 @@
         };
 
         updateTasks = () => {
-          fetch(`/v1/tasks`)
+          fetch(`/users/` + this.props.auth.id, {
+            headers: {
+              Accept: "application/json, text/plain, */*",
+              "Content-Type": "application/json",
+              Authorization: this.props.auth.token
+            }
+          })
             .then(res => res.json())
             .then(data => {
               this.setState({
@@ -544,8 +546,6 @@
         render() {
           return (
             <div>
-              <NavBar />
-
               <div className="container">
                 <SearchForm
                   filterText={this.state.filterText}
@@ -565,15 +565,20 @@
                   onEditTask={this.handleEditTask}
                   onMarkAsDone={this.updateTasks}
                   onTagClick={this.handleTagClick}
+                  auth={this.props.auth}
                 />
 
                 {this.state.isEditing ? (
                   <EditForm
                     onSubmitTask={this.updateTasks}
                     task={this.state.editingTask}
+                    auth={this.props.auth}
                   />
                 ) : (
-                  <InputForm onSubmitTask={this.updateTasks} />
+                  <InputForm
+                    onSubmitTask={this.updateTasks}
+                    auth={this.props.auth}
+                  />
                 )}
               </div>
             </div>
@@ -581,7 +586,279 @@
         }
       }
 
-      ReactDOM.render(<App />, document.getElementById("root"));
+      class LoginPage extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = { username: "", password: "" };
+        }
+
+        handleSubmit = e => {
+          if (!this.state.username) {
+            M.toast({ html: "Empty username." });
+            e.preventDefault();
+            return;
+          }
+
+          if (!this.state.password) {
+            M.toast({ html: "Empty password." });
+            e.preventDefault();
+            return;
+          }
+
+          fetch("/auth/", {
+            method: "POST",
+            headers: {
+              Accept: "application/json, text/plain, */*",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              username: this.state.username,
+              password: this.state.password
+            })
+          })
+            .then(res => {
+              if (!res.ok) throw Error();
+              return res.json();
+            })
+            .then(data => {
+              this.props.onLoginClick(data);
+            })
+            .catch(error =>
+              M.toast({
+                html: "Unsucessful. Check your username and password"
+              })
+            );
+
+          e.preventDefault();
+        };
+
+        handleChange = e => {
+          const target = e.target;
+          const value = target.value;
+          const name = target.name;
+
+          this.setState({
+            [name]: value
+          });
+        };
+
+        render() {
+          return (
+            <form onSubmit={this.handleSubmit}>
+              <label>
+                Username
+                <input
+                  type="text"
+                  name="username"
+                  placeholder="Username"
+                  value={this.state.username}
+                  onChange={this.handleChange}
+                />
+              </label>
+              <label>
+                Password
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={this.state.password}
+                  onChange={this.handleChange}
+                />
+              </label>
+
+              <label>
+                <button className="btn waves-effect waves-light" type="submit">
+                  Sign in
+                </button>
+              </label>
+            </form>
+          );
+        }
+      }
+
+      class CreateAccountPage extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = { username: "", password: "" };
+        }
+
+        handleSubmit = e => {
+          if (!this.state.username) {
+            M.toast({ html: "Empty username." });
+            e.preventDefault();
+            return;
+          }
+
+          if (!this.state.username) {
+            M.toast({ html: "Empty password." });
+            e.preventDefault();
+            return;
+          }
+
+          fetch("/users/", {
+            method: "POST",
+            headers: {
+              Accept: "application/json, text/plain, */*",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              user: {
+                username: this.state.username,
+                password: this.state.password
+              }
+            })
+          })
+            .then(this.setState({ username: "", password: "" }))
+            .then(
+              M.toast({
+                html:
+                  "Thanks for signing up, " +
+                  this.state.username +
+                  ". You may proceed to sign in."
+              })
+            );
+
+          e.preventDefault();
+        };
+
+        handleChange = e => {
+          const target = e.target;
+          const value = target.value;
+          const name = target.name;
+
+          this.setState({
+            [name]: value
+          });
+        };
+
+        render() {
+          return (
+            <form onSubmit={this.handleSubmit}>
+              <div className="section">
+                <label>
+                  Username
+                  <input
+                    type="text"
+                    name="username"
+                    placeholder="Username"
+                    value={this.state.username}
+                    onChange={this.handleChange}
+                  />
+                </label>
+
+                <label>
+                  Password
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Password"
+                    value={this.state.password}
+                    onChange={this.handleChange}
+                  />
+                </label>
+
+                <label>
+                  <button
+                    className="btn waves-effect waves-light"
+                    type="submit"
+                  >
+                    Sign up for Amazing To-Do
+                  </button>
+                </label>
+              </div>
+            </form>
+          );
+        }
+      }
+
+      class LoggedInPage extends React.Component {
+        render() {
+          return (
+            <div>
+              <App auth={this.props.auth} />
+            </div>
+          );
+        }
+      }
+
+      class LoginControl extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = { isLoggedIn: false, auth: null };
+        }
+
+        componentDidMount() {
+          $(document).ready(function() {
+            $(".tabs").tabs();
+          });
+        }
+
+        componentDidUpdate() {
+          $(document).ready(function() {
+            $(".tabs").tabs();
+          });
+        }
+
+        handleLoginClick = data => {
+          this.setState({
+            isLoggedIn: true,
+            auth: data
+          });
+        };
+
+        handleLogoutClick = () => {
+          this.setState({
+            isLoggedIn: false,
+            auth: null
+          });
+        };
+
+        render() {
+          const isLoggedIn = this.state.isLoggedIn;
+          let page;
+
+          if (isLoggedIn) {
+            page = <LoggedInPage auth={this.state.auth} />;
+          } else {
+            page = (
+              <div className="container">
+                <div class="row">
+                  <div class="col s12">
+                    <ul class="tabs">
+                      <li class="tab col s6">
+                        <a href="#sign_in">Sign in</a>
+                      </li>
+                      <li class="tab col s6">
+                        <a href="#sign_up">Sign up</a>
+                      </li>
+                    </ul>
+                  </div>
+                  <div id="sign_up" class="col s12">
+                    <CreateAccountPage
+                      onCreateAccountClick={this.handleLoginClick}
+                    />
+                  </div>
+                  <div id="sign_in" class="col s12">
+                    <LoginPage onLoginClick={this.handleLoginClick} />
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div>
+              <NavBar
+                isLoggedIn={this.state.isLoggedIn}
+                onLogoutClick={this.handleLogoutClick}
+              />
+              {page}
+            </div>
+          );
+        }
+      }
+
+      ReactDOM.render(<LoginControl />, document.getElementById("root"));
     </script>
   </body>
 </html>

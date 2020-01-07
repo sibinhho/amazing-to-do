@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  post 'auth', to: 'authentication#authenticate'
+  resources :users
   namespace :v1 do
     resources :tasks
   end
