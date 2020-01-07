@@ -10,7 +10,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     
     <!-- For demo and submission only, not for production.
-      Slowly compiles JSX with Babel in the browser and uses a large development build of React. 
+      Slowly compiles JSX with Babel in the browser. 
     -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
@@ -383,16 +383,24 @@
         };
 
         handleSubmit = (e) => {
-            const tags = M.Chips.getInstance($(".chips")).chipsData.map((x) => x.tag);
-
-            const regexp = /^(((0[1-9]|[12]\d|3[01])\/(0[13578]|1[02])\/((19|[2-9]\d)\d{2}))|((0[1-9]|[12]\d|30)\/(0[13456789]|1[012])\/((19|[2-9]\d)\d{2}))|((0[1-9]|1\d|2[0-8])\/02\/((19|[2-9]\d)\d{2}))|(29\/02\/((1[6-9]|[2-9]\d)(0[48]|[2468][048]|[13579][26])|((16|[2468][048]|[3579][26])00))))$/g;
-
             if (!this.state.newTaskName) {
             M.toast({ html: "Empty task name." });
             e.preventDefault();
             return;
             }
 
+            const tags = M.Chips.getInstance($(".chips")).chipsData.map((x) => x.tag);
+            
+            if (!tags || !tags.length) {
+            M.toast({
+                html: "Must include at least one tag. Press ENTER to add tag."
+            });
+            e.preventDefault();
+            return;
+            }
+
+            const regexp = /^(((0[1-9]|[12]\d|3[01])\/(0[13578]|1[02])\/((19|[2-9]\d)\d{2}))|((0[1-9]|[12]\d|30)\/(0[13456789]|1[012])\/((19|[2-9]\d)\d{2}))|((0[1-9]|1\d|2[0-8])\/02\/((19|[2-9]\d)\d{2}))|(29\/02\/((1[6-9]|[2-9]\d)(0[48]|[2468][048]|[13579][26])|((16|[2468][048]|[3579][26])00))))$/g;
+            
             if (!regexp.exec(this.state.newTaskDeadline)) {
             M.toast({ html: "Invalid due date." });
             e.preventDefault();
