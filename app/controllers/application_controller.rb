@@ -4,6 +4,9 @@ class ApplicationController < ActionController::API
 
     private
 
+    def search
+    end
+
     def authenticate_request
     @current_user = AuthorizeApiRequest.call(request.headers).result
         render status: :unauthorized unless @current_user

@@ -10,10 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_07_080324) do
+ActiveRecord::Schema.define(version: 2020_01_16_050419) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "tags", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["name"], name: "index_tags_on_name"
+  end
+
+  create_table "tags_tasks", id: false, force: :cascade do |t|
+    t.bigint "task_id", null: false
+    t.bigint "tag_id", null: false
+  end
 
   create_table "tasks", force: :cascade do |t|
     t.string "category"
@@ -32,6 +44,7 @@ ActiveRecord::Schema.define(version: 2020_01_07_080324) do
     t.string "password_digest"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["username"], name: "index_users_on_username"
   end
 
   add_foreign_key "tasks", "users"

@@ -645,32 +645,37 @@
         render() {
           return (
             <form onSubmit={this.handleSubmit}>
-              <label>
-                Username
-                <input
-                  type="text"
-                  name="username"
-                  placeholder="Username"
-                  value={this.state.username}
-                  onChange={this.handleChange}
-                />
-              </label>
-              <label>
-                Password
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  value={this.state.password}
-                  onChange={this.handleChange}
-                />
-              </label>
+              <div className="section">
+                <label>
+                  Username
+                  <input
+                    type="text"
+                    name="username"
+                    placeholder="Username"
+                    value={this.state.username}
+                    onChange={this.handleChange}
+                  />
+                </label>
+                <label>
+                  Password
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Password"
+                    value={this.state.password}
+                    onChange={this.handleChange}
+                  />
+                </label>
 
-              <label>
-                <button className="btn waves-effect waves-light" type="submit">
-                  Sign in
-                </button>
-              </label>
+                <label>
+                  <button
+                    className="btn waves-effect waves-light"
+                    type="submit"
+                  >
+                    Sign in
+                  </button>
+                </label>
+              </div>
             </form>
           );
         }
