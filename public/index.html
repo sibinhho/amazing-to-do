@@ -201,6 +201,13 @@
       }
 
       class SearchForm extends React.Component {
+        componentWillUpdate() {
+          $(".chips").chips({
+            placeholder: "Enter a tag",
+            secondaryPlaceholder: "+ Tag"
+          });
+        }
+
         handleFilterTextChange = e => {
           this.props.onFilterTextChange(e.target.value);
         };
@@ -209,8 +216,19 @@
           this.props.onCatFilterTextChange(e.target.value);
         };
 
+        handleSearchClick = () => {
+          const tags = M.Chips.getInstance($(".chips")).chipsData.map(
+            x => x.tag
+          );
+          this.props.onCatFilterTextChange(tags.join(" "));
+        };
+
         handleNotDoneChange = e => {
           this.props.onNotDoneChange(e.target.checked);
+        };
+
+        handleSearchAllChange = e => {
+          this.props.onSearchAllChange(e.target.checked);
         };
 
         render() {
@@ -218,17 +236,34 @@
             <form>
               <input
                 type="text"
-                placeholder="Search by name"
+                placeholder={
+                  this.props.searchAllEnabled
+                    ? "Enter name to search for"
+                    : "Filter by name"
+                }
                 value={this.props.filterText}
                 onChange={this.handleFilterTextChange}
               />
 
-              <input
-                type="text"
-                placeholder="Search by tag"
-                value={this.props.catFilterText}
-                onChange={this.handleCatFilterTextChange}
-              />
+              {this.props.searchAllEnabled ? (
+                <div>
+                  <div className="chips" />
+                  <a
+                    className="btn waves-effect waves-light"
+                    onClick={this.handleSearchClick}
+                  >
+                    Search
+                    <i className="material-icons right">search</i>
+                  </a>
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  placeholder="Filter by tag"
+                  value={this.props.catFilterText}
+                  onChange={this.handleCatFilterTextChange}
+                />
+              )}
 
               <p>
                 <label>
@@ -238,6 +273,17 @@
                     onChange={this.handleNotDoneChange}
                   />
                   <span>Active only</span>
+                </label>
+              </p>
+
+              <p>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={this.props.searchAllEnabled}
+                    onChange={this.handleSearchAllChange}
+                  />
+                  <span>Search all tasks</span>
                 </label>
               </p>
             </form>
@@ -382,6 +428,7 @@
             placeholder: "Enter a tag",
             secondaryPlaceholder: "+ Tag"
           });
+
           this.setState({
             newTaskName: this.props.task.name,
             newTaskDeadline: this.props.task.deadline
@@ -488,6 +535,7 @@
             filterText: "",
             catFilterText: "",
             notDoneOnly: false,
+            searchAllEnabled: false,
             isEditing: false,
             editingTask: null,
             tasks: []
@@ -499,15 +547,41 @@
         }
 
         handleFilterTextChange = filterText => {
-          this.setState({
-            filterText: filterText
-          });
+          this.setState(
+            {
+              filterText: filterText
+            },
+            () => {
+              if (this.state.searchAllEnabled) {
+                if (!filterText) {
+                  this.setState({
+                    tasks: []
+                  });
+                } else {
+                  this.updateTasks();
+                }
+              }
+            }
+          );
         };
 
         handleCatFilterTextChange = catFilterText => {
-          this.setState({
-            catFilterText: catFilterText
-          });
+          this.setState(
+            {
+              catFilterText: catFilterText
+            },
+            () => {
+              if (this.state.searchAllEnabled) {
+                if (!catFilterText) {
+                  this.setState({
+                    tasks: []
+                  });
+                } else {
+                  this.updateTasks();
+                }
+              }
+            }
+          );
         };
 
         handleNotDoneChange = notDoneOnly => {
@@ -530,7 +604,31 @@
         };
 
         updateTasks = () => {
-          fetch(`/users/` + this.props.auth.id, {
+          if (this.state.searchAllEnabled) {
+            this.searchTasks();
+          } else {
+            fetch(`/users/` + this.props.auth.id, {
+              headers: {
+                Accept: "application/json, text/plain, */*",
+                "Content-Type": "application/json",
+                Authorization: this.props.auth.token
+              }
+            })
+              .then(res => res.json())
+              .then(data => {
+                this.setState({
+                  tasks: data.sort((a, b) =>
+                    a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+                  ),
+                  isEditing: false
+                });
+              });
+          }
+        };
+
+        searchTasks = () => {
+          let queryUrl = `/search?name=${this.state.filterText}&category=${this.state.catFilterText}`;
+          fetch(queryUrl, {
             headers: {
               Accept: "application/json, text/plain, */*",
               "Content-Type": "application/json",
@@ -545,7 +643,23 @@
                 ),
                 isEditing: false
               });
+            })
+            .catch(() => {
+              this.setState({
+                tasks: []
+              });
             });
+        };
+
+        handleSearchAllChange = searchAllEnabled => {
+          this.setState(
+            {
+              searchAllEnabled: searchAllEnabled
+            },
+            () => {
+              this.updateTasks();
+            }
+          );
         };
 
         render() {
@@ -556,15 +670,21 @@
                   filterText={this.state.filterText}
                   catFilterText={this.state.catFilterText}
                   notDoneOnly={this.state.notDoneOnly}
+                  searchAllEnabled={this.state.searchAllEnabled}
                   onFilterTextChange={this.handleFilterTextChange}
                   onCatFilterTextChange={this.handleCatFilterTextChange}
                   onNotDoneChange={this.handleNotDoneChange}
+                  onSearchAllChange={this.handleSearchAllChange}
                 />
 
                 <TaskTable
                   tasks={this.state.tasks}
-                  filterText={this.state.filterText}
-                  catFilterText={this.state.catFilterText}
+                  filterText={
+                    !this.state.searchAllEnabled ? this.state.filterText : ""
+                  }
+                  catFilterText={
+                    !this.state.searchAllEnabled ? this.state.catFilterText : ""
+                  }
                   notDoneOnly={this.state.notDoneOnly}
                   onDeleteTask={this.updateTasks}
                   onEditTask={this.handleEditTask}

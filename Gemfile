@@ -20,6 +20,8 @@ gem 'jwt'
 
 gem 'simple_command'
 
+gem 'pg_search'
+
 # Use Active Storage variant
 # gem 'image_processing', '~> 1.2'
 
