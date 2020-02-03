@@ -203,7 +203,7 @@
 
       class SearchForm extends React.Component {
         componentWillUpdate() {
-          $(".chips").chips({
+          $("#search-chips").chips({
             placeholder: "Enter a tag",
             secondaryPlaceholder: "+ Tag"
           });
@@ -218,7 +218,7 @@
         };
 
         handleSearchClick = () => {
-          const tags = M.Chips.getInstance($(".chips")).chipsData.map(
+          const tags = M.Chips.getInstance($("#search-chips")).chipsData.map(
             x => x.tag
           );
           this.props.onCatFilterTextChange(tags.join(" "));
@@ -248,7 +248,7 @@
 
               {this.props.searchAllEnabled ? (
                 <div>
-                  <div className="chips" />
+                  <div id="search-chips" className="chips" />
                   <a
                     className="btn waves-effect waves-light"
                     onClick={this.handleSearchClick}
@@ -299,7 +299,12 @@
         }
 
         componentDidMount() {
-          $(".chips").chips({
+          $(document).ready(function() {
+            $(".modal").modal({ dismissible: false });
+            $("#input-modal").modal("open");
+          });
+
+          $("#input-chips").chips({
             placeholder: "Enter a tag",
             secondaryPlaceholder: "+ Tag"
           });
@@ -319,10 +324,11 @@
           if (!this.state.newTaskName) {
             M.toast({ html: "Empty task name." });
             e.preventDefault();
+            this.props.onSubmitTask();
             return;
           }
 
-          const tags = M.Chips.getInstance($(".chips")).chipsData.map(
+          const tags = M.Chips.getInstance($("#input-chips")).chipsData.map(
             x => x.tag
           );
 
@@ -331,6 +337,7 @@
               html: "Must include at least one tag. Press ENTER to add tag."
             });
             e.preventDefault();
+            this.props.onSubmitTask();
             return;
           }
 
@@ -339,6 +346,7 @@
           if (!regexp.exec(this.state.newTaskDeadline)) {
             M.toast({ html: "Invalid due date." });
             e.preventDefault();
+            this.props.onSubmitTask();
             return;
           }
 
@@ -366,7 +374,7 @@
             newTaskDeadline: ""
           });
 
-          $(".chips").chips({
+          $("#input-chips").chips({
             placeholder: "Enter a tag",
             secondaryPlaceholder: "+ Tag"
           });
@@ -376,39 +384,46 @@
 
         render() {
           return (
-            <form onSubmit={this.handleSubmit}>
-              <label>
-                Task Name
-                <input
-                  type="text"
-                  name="newTaskName"
-                  placeholder="Do something"
-                  value={this.state.newTaskName}
-                  onChange={this.handleChange}
-                />
-              </label>
-              <label>
-                Tags
-                <div className="chips" />
-              </label>
+            <div id="input-modal" className="modal">
+              <div className="modal-content">
+                <form onSubmit={this.handleSubmit}>
+                  <label>
+                    Task Name
+                    <input
+                      type="text"
+                      name="newTaskName"
+                      placeholder="Do something"
+                      value={this.state.newTaskName}
+                      onChange={this.handleChange}
+                    />
+                  </label>
+                  <label>
+                    Tags
+                    <div id="input-chips" className="chips" />
+                  </label>
 
-              <label>
-                Due date
-                <input
-                  type="text"
-                  name="newTaskDeadline"
-                  placeholder="01/01/1970"
-                  value={this.state.newTaskDeadline}
-                  onChange={this.handleChange}
-                />
-              </label>
-              <label>
-                <button className="btn waves-effect waves-light" type="submit">
-                  Add
-                  <i className="material-icons right">send</i>
-                </button>
-              </label>
-            </form>
+                  <label>
+                    Due date
+                    <input
+                      type="text"
+                      name="newTaskDeadline"
+                      placeholder="01/01/1970"
+                      value={this.state.newTaskDeadline}
+                      onChange={this.handleChange}
+                    />
+                  </label>
+                  <label>
+                    <button
+                      className="modal-close btn waves-effect waves-light"
+                      type="submit"
+                    >
+                      Add
+                      <i className="material-icons right">send</i>
+                    </button>
+                  </label>
+                </form>
+              </div>
+            </div>
           );
         }
       }
@@ -420,11 +435,16 @@
         }
 
         componentDidMount() {
+          $(document).ready(function() {
+            $(".modal").modal({ dismissible: false });
+            $("#edit-modal").modal("open");
+          });
+
           const tags = this.props.task.category
             .split(" ")
             .map(x => ({ tag: x }));
 
-          $(".chips").chips({
+          $("#edit-chips").chips({
             data: tags,
             placeholder: "Enter a tag",
             secondaryPlaceholder: "+ Tag"
@@ -449,10 +469,11 @@
           if (!this.state.newTaskName) {
             M.toast({ html: "Empty task name." });
             e.preventDefault();
+            this.props.onSubmitTask();
             return;
           }
 
-          const tags = M.Chips.getInstance($(".chips")).chipsData.map(
+          const tags = M.Chips.getInstance($("#edit-chips")).chipsData.map(
             x => x.tag
           );
 
@@ -461,6 +482,7 @@
               html: "Must include at least one tag. Press ENTER to add tag."
             });
             e.preventDefault();
+            this.props.onSubmitTask();
             return;
           }
 
@@ -469,6 +491,7 @@
           if (!regexp.exec(this.state.newTaskDeadline)) {
             M.toast({ html: "Invalid due date." });
             e.preventDefault();
+            this.props.onSubmitTask();
             return;
           }
 
@@ -493,38 +516,45 @@
 
         render() {
           return (
-            <form onSubmit={this.handleSubmit}>
-              <label>
-                Task Name
-                <input
-                  type="text"
-                  name="newTaskName"
-                  placeholder="Do something"
-                  value={this.state.newTaskName}
-                  onChange={this.handleChange}
-                />
-              </label>
-              <label>
-                Tags
-                <div className="chips" />
-              </label>
-              <label>
-                Due date
-                <input
-                  type="text"
-                  name="newTaskDeadline"
-                  placeholder="01/01/1970"
-                  value={this.state.newTaskDeadline}
-                  onChange={this.handleChange}
-                />
-              </label>
-              <label>
-                <button className="btn waves-effect waves-light" type="submit">
-                  Update
-                  <i className="material-icons right">send</i>
-                </button>
-              </label>
-            </form>
+            <div id="edit-modal" className="modal">
+              <div className="modal-content">
+                <form onSubmit={this.handleSubmit}>
+                  <label>
+                    Task Name
+                    <input
+                      type="text"
+                      name="newTaskName"
+                      placeholder="Do something"
+                      value={this.state.newTaskName}
+                      onChange={this.handleChange}
+                    />
+                  </label>
+                  <label>
+                    Tags
+                    <div id="edit-chips" className="chips" />
+                  </label>
+                  <label>
+                    Due date
+                    <input
+                      type="text"
+                      name="newTaskDeadline"
+                      placeholder="01/01/1970"
+                      value={this.state.newTaskDeadline}
+                      onChange={this.handleChange}
+                    />
+                  </label>
+                  <label>
+                    <button
+                      className="modal-close btn waves-effect waves-light"
+                      type="submit"
+                    >
+                      Update
+                      <i className="material-icons right">send</i>
+                    </button>
+                  </label>
+                </form>
+              </div>
+            </div>
           );
         }
       }
@@ -538,6 +568,7 @@
             notDoneOnly: false,
             searchAllEnabled: false,
             isEditing: false,
+            isAdding: false,
             editingTask: null,
             tasks: []
           };
@@ -621,7 +652,8 @@
                   tasks: data.sort((a, b) =>
                     a.id < b.id ? -1 : a.id > b.id ? 1 : 0
                   ),
-                  isEditing: false
+                  isEditing: false,
+                  isAdding: false
                 });
               });
           }
@@ -664,6 +696,34 @@
         };
 
         render() {
+          let tmp;
+          if (this.state.isEditing) {
+            tmp = (
+              <EditForm
+                onSubmitTask={this.updateTasks}
+                task={this.state.editingTask}
+                auth={this.props.auth}
+              />
+            );
+          } else if (this.state.isAdding) {
+            tmp = (
+              <InputForm
+                onSubmitTask={this.updateTasks}
+                auth={this.props.auth}
+              />
+            );
+          } else if (!this.state.searchAllEnabled) {
+            tmp = (
+              <button
+                className="btn waves-effect waves-light"
+                onClick={() => this.setState({ isAdding: true })}
+              >
+                Add new task
+                <i className="material-icons right">add</i>
+              </button>
+            );
+          }
+
           return (
             <div>
               <div className="container">
@@ -677,6 +737,8 @@
                   onNotDoneChange={this.handleNotDoneChange}
                   onSearchAllChange={this.handleSearchAllChange}
                 />
+
+                {tmp}
 
                 <TaskTable
                   tasks={this.state.tasks}
@@ -693,19 +755,6 @@
                   onTagClick={this.handleTagClick}
                   auth={this.props.auth}
                 />
-
-                {this.state.isEditing ? (
-                  <EditForm
-                    onSubmitTask={this.updateTasks}
-                    task={this.state.editingTask}
-                    auth={this.props.auth}
-                  />
-                ) : (
-                  <InputForm
-                    onSubmitTask={this.updateTasks}
-                    auth={this.props.auth}
-                  />
-                )}
               </div>
             </div>
           );
