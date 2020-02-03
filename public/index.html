@@ -630,9 +630,16 @@
         };
 
         handleTagClick = tag => {
-          this.setState({
-            catFilterText: tag
-          });
+          this.setState(
+            {
+              catFilterText: tag
+            },
+            () => {
+              if (this.state.searchAllEnabled) {
+                this.searchTasks();
+              }
+            }
+          );
         };
 
         updateTasks = () => {
