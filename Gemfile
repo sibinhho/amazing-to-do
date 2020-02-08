@@ -22,6 +22,8 @@ gem 'simple_command'
 
 gem 'pg_search'
 
+gem 'will_paginate', '~> 3.1.0'
+
 # Use Active Storage variant
 # gem 'image_processing', '~> 1.2'
 

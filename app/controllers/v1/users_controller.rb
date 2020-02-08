@@ -1,4 +1,4 @@
-class UsersController < ApplicationController
+class V1::UsersController < ApplicationController
     skip_before_action :authenticate_request, only: [:create]
 
     def create
@@ -9,7 +9,7 @@ class UsersController < ApplicationController
 
     def show
         if params[:id].to_i == @current_user.id.to_i
-            render json: @current_user.tasks, status: :ok
+            render json: @current_user.tasks.paginate(page: params[:page]), status: :ok
         else
             render status: :unauthorized
         end

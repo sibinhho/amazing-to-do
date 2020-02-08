@@ -570,6 +570,7 @@
             isEditing: false,
             isAdding: false,
             editingTask: null,
+            page: 1,
             tasks: []
           };
         }
@@ -646,7 +647,7 @@
           if (this.state.searchAllEnabled) {
             this.searchTasks();
           } else {
-            fetch(`/users/` + this.props.auth.id, {
+            fetch(`/v1/users/${this.props.auth.id}?page=${this.state.page}`, {
               headers: {
                 Accept: "application/json, text/plain, */*",
                 "Content-Type": "application/json",
@@ -667,7 +668,7 @@
         };
 
         searchTasks = () => {
-          let queryUrl = `/search?name=${this.state.filterText}&category=${this.state.catFilterText}`;
+          let queryUrl = `/v1/search?name=${this.state.filterText}&category=${this.state.catFilterText}&page=${this.state.page}`;
           fetch(queryUrl, {
             headers: {
               Accept: "application/json, text/plain, */*",
@@ -694,7 +695,8 @@
         handleSearchAllChange = searchAllEnabled => {
           this.setState(
             {
-              searchAllEnabled: searchAllEnabled
+              searchAllEnabled: searchAllEnabled,
+              page: 1
             },
             () => {
               this.updateTasks();
@@ -745,7 +747,43 @@
                   onSearchAllChange={this.handleSearchAllChange}
                 />
 
-                {tmp}
+                <div className="left">{tmp}</div>
+                <div className="right">
+                  <button
+                    className="btn waves-effect waves-light"
+                    onClick={() =>
+                      this.setState(
+                        { page: this.state.page > 1 ? this.state.page - 1 : 1 },
+                        () => this.updateTasks()
+                      )
+                    }
+                  >
+                    <i
+                      className="material-icons"
+                      style={{ verticalAlign: "middle" }}
+                    >
+                      chevron_left
+                    </i>
+                    Prev
+                  </button>
+
+                  <button
+                    className="btn waves-effect waves-light"
+                    onClick={() =>
+                      this.setState({ page: this.state.page + 1 }, () =>
+                        this.updateTasks()
+                      )
+                    }
+                  >
+                    Next
+                    <i
+                      className="material-icons"
+                      style={{ verticalAlign: "middle" }}
+                    >
+                      chevron_right
+                    </i>
+                  </button>
+                </div>
 
                 <TaskTable
                   tasks={this.state.tasks}
@@ -787,7 +825,7 @@
             return;
           }
 
-          fetch("/auth/", {
+          fetch("/v1/auth/", {
             method: "POST",
             headers: {
               Accept: "application/json, text/plain, */*",
@@ -882,7 +920,7 @@
             return;
           }
 
-          fetch("/users/", {
+          fetch("/v1/users/", {
             method: "POST",
             headers: {
               Accept: "application/json, text/plain, */*",

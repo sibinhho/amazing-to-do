@@ -53,6 +53,7 @@ class V1::TasksController < ApplicationController
     def update
         @task = Task.find(params[:id])
         if correct_user && @task.update(task_params)
+            set_tags
             render json: @task, status: :ok
         else
             render status: :unprocessable_entity
