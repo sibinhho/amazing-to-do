@@ -204,7 +204,7 @@
       class SearchForm extends React.Component {
         componentWillUpdate() {
           $("#search-chips").chips({
-            placeholder: "Enter a tag",
+            placeholder: "Press ⏎ to add",
             secondaryPlaceholder: "+ Tag"
           });
         }
@@ -305,7 +305,7 @@
           });
 
           $("#input-chips").chips({
-            placeholder: "Enter a tag",
+            placeholder: "Press ⏎ to add",
             secondaryPlaceholder: "+ Tag"
           });
         }
@@ -334,7 +334,7 @@
 
           if (!tags || !tags.length) {
             M.toast({
-              html: "Must include at least one tag. Press ENTER to add tag."
+              html: "Must include at least one tag. Press ⏎ to add tag."
             });
             e.preventDefault();
             this.props.onSubmitTask();
@@ -375,7 +375,7 @@
           });
 
           $("#input-chips").chips({
-            placeholder: "Enter a tag",
+            placeholder: "Press ⏎ to add",
             secondaryPlaceholder: "+ Tag"
           });
 
@@ -446,7 +446,7 @@
 
           $("#edit-chips").chips({
             data: tags,
-            placeholder: "Enter a tag",
+            placeholder: "Press ⏎ to add",
             secondaryPlaceholder: "+ Tag"
           });
 
@@ -479,7 +479,7 @@
 
           if (!tags || !tags.length) {
             M.toast({
-              html: "Must include at least one tag. Press ENTER to add tag."
+              html: "Must include at least one tag. Press ⏎ to add tag."
             });
             e.preventDefault();
             this.props.onSubmitTask();
