@@ -2,5 +2,6 @@
 * Matriculation number: A0201332A
 * Hosting: http://cvwo-application-ho-si-binh.herokuapp.com
 * Test user:
-  * username: test  
+  * username: test
   * password: 12121212
+* Note: All frontend codes are self-contained in public/index.html
