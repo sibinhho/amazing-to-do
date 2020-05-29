@@ -1,7 +1,3 @@
-* Name: Ho Si Binh
-* Matriculation number: A0201332A
-* Hosting: http://cvwo-application-ho-si-binh.herokuapp.com
-* Test user:
-  * username: test
-  * password: 12121212
-* Note: All frontend codes are self-contained in public/index.html
+A to do app with tagging feature. https://amazing-to-do.herokuapp.com.
+* Frontend: React 
+* Backend: Ruby on Rails, PostgreSQL 
